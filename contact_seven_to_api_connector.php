@@ -28,14 +28,14 @@ class Contact_Seven_To_Api_Connector
 
     public function enqueue_scripts()
     {
-		$all_options = wp_load_alloptions();
-		$toJsSettings  = array();
-		 
-		foreach ( $all_options as $name => $value ) {
-			if ( stristr( $name, 'c7tA_' ) ) {
-				$toJsSettings[ $name ] = $value;
-			}
-		}
+        $all_options = wp_load_alloptions();
+        $toJsSettings = array();
+
+        foreach ($all_options as $name => $value) {
+            if (stristr($name, 'c7tA_')) {
+                $toJsSettings[$name] = unserialize($value);
+            }
+        }
         wp_register_script('c7tA_js', plugin_dir_url(__FILE__) . 'js/contactSevenToApiConnector.js', '1.0', true);
         wp_localize_script('c7tA_js', 'c7tA', $toJsSettings);
         wp_enqueue_script('c7tA_js');
@@ -57,16 +57,26 @@ class Contact_Seven_To_Api_Connector
     public function plugin_settings_page_content()
     {?>
 			<div class="wrap">
-				<h2><?php echo $this->title . " Settings Page"; ?></h2>
 				<form method="post" action="options.php">
 					<?php
-settings_fields($this->slug);
+		settings_fields($this->slug);
         do_settings_sections($this->slug);
         submit_button();
         ?>
 				</form>
 			</div> <?php
 }
+
+    public function get_forms()
+    {
+        $args = array(
+            'post_type' => array('wpcf7_contact_form'),
+        );
+        $fields = array();
+// The Query
+        $query = new WP_Query($args);
+        return $query->posts;
+    }
 
     public function setup_sections()
     {
@@ -75,79 +85,35 @@ settings_fields($this->slug);
 
     public function section_callback($arguments)
     {
-        switch ($arguments['id']) {
-            case $this->slug:
-                echo $this->title;
-                break;
-        }
+        //  echo 'Form '.$arguments['title'];
     }
 
     public function setup_fields()
     {
-        // WP_Query arguments
-        $args = array(
-            'post_type' => array('wpcf7_contact_form'),
-        );
-		$fields = array();
-// The Query
-        $query = new WP_Query($args);
-        if ($query->have_posts()):
-            while ($query->have_posts()): $query->the_post();
-                $fields[] = array(
-					'uid' => 'c7tA_'.get_the_ID(),
-					'label' => get_the_title(),
-					'section' => $this->slug,
-					'title' => "Form ".get_the_ID(),
-					'type' => 'text',
-					'options' => false,
-					'placeholder' => 'API Url für das Formular eintragen',
-					'helper' => '',
-					'supplemental' => '',
-					'default' => '',
-				);
-            endwhile;
-        endif;
+        $forms = $this->get_forms();
+        $fields = array();
+        foreach ($forms as $form) {
+            array_push($fields, array('uid' => $form->ID, 'section' => $this->slug, 'label' => $form->post_title.' ('.$form->ID.')', 'title'=>'Form '.$form->ID));
+        }
 
         foreach ($fields as $field) {
             add_settings_field($field['uid'], $field['label'], array($this, 'field_callback'), $this->slug, $field['section'], $field);
-            register_setting($this->slug, $field['uid']);
+            #unregister_setting($this->slug, $field['uid']);
+            register_setting($this->slug, 'c7tA_'.$field['uid'],array('type'=>'string'));
         }
     }
 
     public function field_callback($arguments)
     {
-        $value = get_option($arguments['uid']);
-        $class = '';
-        if (!$value) {
-            $value = $arguments['default'];
-        }
-        
-        switch ($arguments['type']) {
-            case 'text':
-                printf('<input ' . $class . ' name="%1$s" id="%1$s" type="%2$s" placeholder="%3$s" value="%4$s" title="%5$s"/>', $arguments['uid'], $arguments['type'], $arguments['placeholder'], $value,$arguments['title']);
-                break;
-            case 'checkbox':
-                printf('<input ' . $class . ' name="%1$s" id="%1$s" type="%2$s" value="1" placeholder="%3$s" %4$s />', $arguments['uid'], $arguments['type'], $arguments['placeholder'], checked(1, $value, false));
-                break;
-            case 'range':
-                printf('<input ' . $class . ' name="%1$s" id="%1$s" type="%2$s" value="%4$s" placeholder="%3$s" max="%6$s" min="%5$s" step="%7$s"  oninput="this.nextElementSibling.innerText= this.value"/><label>%4$s</label>', $arguments['uid'], $arguments['type'], $arguments['placeholder'], $value, $arguments['min'], $arguments['max'], $arguments['step']);
-                break;
-            case 'color':
-                printf('<input ' . $class . ' name="%1$s" id="%1$s" type="%2$s" value="%4$s" placeholder="%3$s"  oninput="this.nextElementSibling.innerText= this.value"/><label>%4$s</label>', $arguments['uid'], $arguments['type'], $arguments['placeholder'], $value);
-                break;
-            case 'button':
-                printf('<button name="%1$s" id="%1$s">%2$s</button>', $arguments['uid'], $arguments['label']);
-                break;
-
-        }
-        if ($helper = $arguments['helper']) {
-            printf('<span class="helper"> %s</span>', $helper);
-        }
-        if ($supplimental = $arguments['supplemental']) {
-            printf('<p class="description">%s</p>', $supplimental);
-        }
-    }
-
+		$value = get_option('c7tA_'.$arguments['uid']);
+		
+        echo '<div class="c7tA-form" id="'.$arguments['uid'].'" title="'.$arguments['title'].'">
+				<input type="text" placeholder="Gib API Url ein" value="'.$value['url'].'" title="Gib API Url ein" name="c7tA_'.$arguments['uid'].'[url]" id="c7tA_api_url"/>
+				<input type="text" placeholder="Gib username für API Zugriff ein" value="'.$value['username'].'" title="API Username" name="c7tA_'.$arguments['uid'].'[username]" id="c7tA_api_username"/>
+				<input type="password" placeholder="Gib Passwort für Zugriff ein" value="'.$value['password'].'" title="API Passwort" name="c7tA_'.$arguments['uid'].'[password]" id="c7tA_api_password"/>
+			</div>
+		';
+}
 }
 
 new Contact_Seven_To_Api_Connector();
