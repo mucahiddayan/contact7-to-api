@@ -22,8 +22,8 @@ class Contact_Seven_To_Api_Connector
         add_action('admin_menu', array($this, 'create_plugin_settings_page'));
         add_action('admin_init', array($this, 'setup_sections'));
         add_action('admin_init', array($this, 'setup_fields'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-
+		add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+		add_action("wpcf7_before_send_mail",  array($this,"wpcf7_c7tA_send_to_api"));  
     }
 
     public function enqueue_scripts()
@@ -101,7 +101,22 @@ class Contact_Seven_To_Api_Connector
             #unregister_setting($this->slug, $field['uid']);
             register_setting($this->slug, 'c7tA_'.$field['uid'],array('type'=>'string'));
         }
-    }
+	}	
+	
+	public function wpcf7_c7tA_send_to_api($cf7) {
+		// get the contact form object
+		$wpcf = WPCF7_ContactForm::get_current();		
+	
+		// if you wanna check the ID of the Form $wpcf->id
+	
+		if ($settings = get_option('c7tA_'.$wpcf->id)) {
+			// If you want to skip mailing the data, you can do it...  
+			echo '<script type="text/javascript">console.log("wooooorks");</script>';
+			#$wpcf->skip_mail = true;    
+		}
+	
+		return $wpcf;
+	}
 
     public function field_callback($arguments)
     {
