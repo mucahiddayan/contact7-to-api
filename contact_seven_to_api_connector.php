@@ -22,8 +22,8 @@ class Contact_Seven_To_Api_Connector
         add_action('admin_menu', array($this, 'create_plugin_settings_page'));
         add_action('admin_init', array($this, 'setup_sections'));
         add_action('admin_init', array($this, 'setup_fields'));
-		add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-		add_action("wpcf7_before_send_mail",  array($this,"wpcf7_c7tA_send_to_api"));  
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_action("wpcf7_before_send_mail", array($this, "wpcf7_c7tA_send_to_api"));
     }
 
     public function enqueue_scripts()
@@ -59,7 +59,7 @@ class Contact_Seven_To_Api_Connector
 			<div class="wrap">
 				<form method="post" action="options.php">
 					<?php
-		settings_fields($this->slug);
+settings_fields($this->slug);
         do_settings_sections($this->slug);
         submit_button();
         ?>
@@ -93,42 +93,82 @@ class Contact_Seven_To_Api_Connector
         $forms = $this->get_forms();
         $fields = array();
         foreach ($forms as $form) {
-            array_push($fields, array('uid' => $form->ID, 'section' => $this->slug, 'label' => $form->post_title.' ('.$form->ID.')', 'title'=>'Form '.$form->ID));
+            array_push($fields, array('uid' => $form->ID, 'section' => $this->slug, 'label' => $form->post_title . ' (' . $form->ID . ')', 'title' => 'Form ' . $form->ID));
         }
 
         foreach ($fields as $field) {
             add_settings_field($field['uid'], $field['label'], array($this, 'field_callback'), $this->slug, $field['section'], $field);
             #unregister_setting($this->slug, $field['uid']);
-            register_setting($this->slug, 'c7tA_'.$field['uid'],array('type'=>'string'));
+            register_setting($this->slug, 'c7tA_' . $field['uid'], array('type' => 'string'));
         }
-	}	
-	
-	public function wpcf7_c7tA_send_to_api($cf7) {
-		// get the contact form object
-		$wpcf = WPCF7_ContactForm::get_current();		
-	
-		// if you wanna check the ID of the Form $wpcf->id
-	
-		if ($settings = get_option('c7tA_'.$wpcf->id)) {
-			// If you want to skip mailing the data, you can do it...  
-			echo '<script type="text/javascript">console.log("wooooorks");</script>';
-			#$wpcf->skip_mail = true;    
-		}
-	
-		return $wpcf;
-	}
+    }
+
+    public function wpcf7_c7tA_send_to_api($cf7)
+    {
+        // get the contact form object
+        $wpcf = WPCF7_ContactForm::get_current();
+
+        // if you wanna check the ID of the Form $wpcf->id
+
+        if ($settings = get_option('c7tA_' . $wpcf->id)) {
+            // If you want to skip mailing the data, you can do it...
+            // Your ID and token
+            /*
+            $blogID = '8070105920543249955';
+            $authToken = 'OAuth 2.0 token here';
+
+            // The data to send to the API
+            $postData = array(
+            'kind' => 'blogger#post',
+            'blog' => array('id' => $blogID),
+            'title' => 'A new post',
+            'content' => 'With <b>exciting</b> content...'
+            );
+
+            // Setup cURL
+            $ch = curl_init('https://www.googleapis.com/blogger/v3/blogs/'.$blogID.'/posts/');
+            curl_setopt_array($ch, array(
+            CURLOPT_POST => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_HTTPHEADER => array(
+            'Authorization: '.$authToken,
+            'Content-Type: application/json'
+            ),
+            CURLOPT_POSTFIELDS => json_encode($postData)
+            ));
+
+            // Send the request
+            $response = curl_exec($ch);
+
+            // Check for errors
+            if($response === FALSE){
+            die(curl_error($ch));
+            }
+
+            // Decode the response
+            $responseData = json_decode($response, TRUE);
+
+            // Print the date from the response
+            echo $responseData['published'];
+             */
+            echo '<script type="text/javascript">console.log("wooooorks");</script>';
+            #$wpcf->skip_mail = true;
+        }
+
+        return $wpcf;
+    }
 
     public function field_callback($arguments)
     {
-		$value = get_option('c7tA_'.$arguments['uid']);
-		
-        echo '<div class="c7tA-form" id="'.$arguments['uid'].'" title="'.$arguments['title'].'">
-				<input type="text" placeholder="Gib API Url ein" value="'.$value['url'].'" title="Gib API Url ein" name="c7tA_'.$arguments['uid'].'[url]" id="c7tA_api_url"/>
-				<input type="text" placeholder="Gib username für API Zugriff ein" value="'.$value['username'].'" title="API Username" name="c7tA_'.$arguments['uid'].'[username]" id="c7tA_api_username"/>
-				<input type="password" placeholder="Gib Passwort für Zugriff ein" value="'.$value['password'].'" title="API Passwort" name="c7tA_'.$arguments['uid'].'[password]" id="c7tA_api_password"/>
+        $value = get_option('c7tA_' . $arguments['uid']);
+
+        echo '<div class="c7tA-form" id="' . $arguments['uid'] . '" title="' . $arguments['title'] . '">
+				<input type="text" placeholder="Gib API Url ein" value="' . $value['url'] . '" title="Gib API Url ein" name="c7tA_' . $arguments['uid'] . '[url]" id="c7tA_api_url"/>
+				<input type="text" placeholder="Gib username für API Zugriff ein" value="' . $value['username'] . '" title="API Username" name="c7tA_' . $arguments['uid'] . '[username]" id="c7tA_api_username"/>
+				<input type="password" placeholder="Gib Passwort für Zugriff ein" value="' . $value['password'] . '" title="API Passwort" name="c7tA_' . $arguments['uid'] . '[password]" id="c7tA_api_password"/>
 			</div>
 		';
-}
+    }
 }
 
 new Contact_Seven_To_Api_Connector();
