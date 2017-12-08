@@ -1,0 +1,26 @@
+.c7tA-form {
+  box-shadow: 0px 0px 1px 0px #acacac;
+  padding: 5px;
+  border-radius: 2px;
+  text-align: center;
+  width: 50%;
+}
+
+.c7tA-form input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none !important;
+    box-shadow: 0px 1px 0px 0px #dcdcdc !important;
+    transition:box-shadow .5s;
+}@media (max-width:767px){
+   .c7tA-form{
+    width: 100%;
+} 
+}
+
+.c7tA-form input:focus{
+    box-shadow: 0px 1px 0px 0px rgba(30,140,190,.8) !important;
+    transition:box-shadow .5s;
+    transform-origin: center;
+}
