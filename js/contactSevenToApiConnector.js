@@ -8,7 +8,7 @@ document.addEventListener(
       let form_ = document.querySelector(".wpcf7 form");
       let formData = new FormData(form_);
       let id = formData.get('id');
-      console.log(formData);
+      
     } catch (err) {
       console.warn(err);
     }

@@ -122,10 +122,36 @@ settings_fields($this->slug);
     {
         // get the contact form object
         $wpcf = WPCF7_ContactForm::get_current();
+        $postedData  = $wpcf->postedData;
 
         // if you wanna check the ID of the Form $wpcf->id
 
-        if ($settings = get_option('c7tA_' . $wpcf->id)) {
+        if ($c7tA = get_option('c7tA_' . $wpcf->id)) {
+            $postData = $postedData;
+            $ch = curl_init($c7ta["api_url"]);
+            curl_setopt_array($ch, array(
+                CURLOPT_POST => TRUE,
+                CURLOPT_RETURNTRANSFER => TRUE,
+                CURLOPT_HTTPHEADER => array(
+                #'Authorization: '.$c7t,
+                'Content-Type: application/json'
+                ),
+                CURLOPT_POSTFIELDS => json_encode($postData)
+                ));
+    
+                // Send the request
+                $response = curl_exec($ch);
+    
+                // Check for errors
+                if($response === FALSE){
+                die(curl_error($ch));
+                }
+    
+                // Decode the response
+                $responseData = json_decode($response, TRUE);
+    
+                // Print the date from the response
+                echo $responseData['published'];
             // If you want to skip mailing the data, you can do it...
             // Your ID and token
             /*
@@ -184,7 +210,7 @@ settings_fields($this->slug);
         }
 
         echo '<div class="c7tA-form" id="' . $uuid . '" title="' . $arguments['title'] . '">
-				<input type="text" placeholder="Gib API Url ein" value="' . $value['url'] . '" title="Gib API Url ein" name="c7tA_' . $uuid . '[url]" id="c7tA_api_url"/>
+				<input type="text" placeholder="Gib API Url ein" value="' . $value['api_url'] . '" title="Gib API Url ein" name="c7tA_' . $uuid . '[api_url]" id="c7tA_api_url"/>
 				<input type="text" placeholder="Gib username für API Zugriff ein" value="' . $value['username'] . '" title="API Username" name="c7tA_' . $uuid . '[username]" id="c7tA_api_username"/>
 				<input type="password" placeholder="Gib Passwort für Zugriff ein" value="' . $value['password'] . '" title="API Passwort" name="c7tA_' . $uuid . '[password]" id="c7tA_api_password"/>
 			</div>
