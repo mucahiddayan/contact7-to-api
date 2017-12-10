@@ -27,7 +27,7 @@ class Contact_Seven_To_Api_Connector
         add_action('admin_init', array($this, 'setup_fields'));
 		add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
 		add_action('admin_enqueue_scripts', array($this,'admin_enqueue_scripts') );
-        // add_action("wpcf7_before_send_mail", array($this, "wpcf7_c7tA_send_to_api"));
+        add_action("wpcf7_before_send_mail", array($this, "wpcf7_c7tA_send_to_api"));
     }
 
     public function enqueue_scripts()
@@ -166,7 +166,7 @@ settings_fields($this->slug);
             // Print the date from the response
             echo $responseData['published'];
              */
-            echo '<script type="text/javascript">console.log("wooooorks");</script>';
+            
             #$wpcf->skip_mail = true;
         }
 
