@@ -101,9 +101,15 @@ settings_fields($this->slug);
     {
         $forms = $this->get_forms();
         $fields = array();
+       
+        if(empty($forms)){
+            array_push($fields, array('uid' => 0, 'section' => $this->slug, 'label' => '', 'title' => 'No Formular'));
+           
+        }else{
         foreach ($forms as $form) {
             array_push($fields, array('uid' => $form->ID, 'section' => $this->slug, 'label' => $form->post_title . ' (' . $form->ID . ')', 'title' => 'Form ' . $form->ID));
         }
+    }
 
         foreach ($fields as $field) {
             add_settings_field($field['uid'], $field['label'], array($this, 'field_callback'), $this->slug, $field['section'], $field);
@@ -169,12 +175,18 @@ settings_fields($this->slug);
 
     public function field_callback($arguments)
     {
-        $value = get_option('c7tA_' . $arguments['uid']);
+        $uuid = $arguments['uid'];
+        $value = get_option('c7tA_' .$uuid );
 
-        echo '<div class="c7tA-form" id="' . $arguments['uid'] . '" title="' . $arguments['title'] . '">
-				<input type="text" placeholder="Gib API Url ein" value="' . $value['url'] . '" title="Gib API Url ein" name="c7tA_' . $arguments['uid'] . '[url]" id="c7tA_api_url"/>
-				<input type="text" placeholder="Gib username für API Zugriff ein" value="' . $value['username'] . '" title="API Username" name="c7tA_' . $arguments['uid'] . '[username]" id="c7tA_api_username"/>
-				<input type="password" placeholder="Gib Passwort für Zugriff ein" value="' . $value['password'] . '" title="API Passwort" name="c7tA_' . $arguments['uid'] . '[password]" id="c7tA_api_password"/>
+        if($uuid == 0){
+            echo '<h4>Es gibt keine Formulare! Erstelle ein neues Formular <a href="'.get_home_url().'/wp-admin/admin.php?page=wpcf7-new">hier</a>.</h4>';
+            return;
+        }
+
+        echo '<div class="c7tA-form" id="' . $uuid . '" title="' . $arguments['title'] . '">
+				<input type="text" placeholder="Gib API Url ein" value="' . $value['url'] . '" title="Gib API Url ein" name="c7tA_' . $uuid . '[url]" id="c7tA_api_url"/>
+				<input type="text" placeholder="Gib username für API Zugriff ein" value="' . $value['username'] . '" title="API Username" name="c7tA_' . $uuid . '[username]" id="c7tA_api_username"/>
+				<input type="password" placeholder="Gib Passwort für Zugriff ein" value="' . $value['password'] . '" title="API Passwort" name="c7tA_' . $uuid . '[password]" id="c7tA_api_password"/>
 			</div>
 		';
     }
