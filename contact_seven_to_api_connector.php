@@ -149,9 +149,7 @@ settings_fields($this->slug);
     
                 // Decode the response
                 $responseData = json_decode($response, TRUE);
-    
-                // Print the date from the response
-                echo $responseData['published'];
+            
             // If you want to skip mailing the data, you can do it...
             // Your ID and token
             /*
@@ -196,7 +194,7 @@ settings_fields($this->slug);
             #$wpcf->skip_mail = true;
         }
 
-        return $wpcf;
+        #return $wpcf;
     }
 
     public function field_callback($arguments)
