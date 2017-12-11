@@ -25,7 +25,7 @@ class Contact_Seven_To_Api_Connector
         add_action('admin_menu', array($this, 'create_plugin_settings_page'));
         add_action('admin_init', array($this, 'setup_sections'));
         add_action('admin_init', array($this, 'setup_fields'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+        #add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
         add_action('wpcf7_before_send_mail', array($this, 'wpcf7_c7tA_send_to_api'));
     }
@@ -41,13 +41,13 @@ class Contact_Seven_To_Api_Connector
             }
         }
         wp_register_script('c7tA_js', plugin_dir_url(__FILE__) . 'js/contactSevenToApiConnector.js', '1.0', true);
-        # wp_localize_script('c7tA_js', 'c7tA', $toJsSettings);
+        wp_localize_script('c7tA_js', 'c7tA', $toJsSettings);
         wp_enqueue_script('c7tA_js');
     }
 
     public function admin_enqueue_scripts()
     {
-        wp_enqueue_script('c7tA_admin_js', plugin_dir_url(__FILE__) . 'js/admin.js', '1.0', true);
+        #wp_enqueue_script('c7tA_admin_js', plugin_dir_url(__FILE__) . 'js/admin.js', '1.0', true);
         wp_enqueue_style('c7tA_admin_css', plugin_dir_url(__FILE__) . 'css/admin.css', '1.0', true);
     }
 
