@@ -165,8 +165,6 @@ settings_fields($this->slug);
 
             $resp = file_get_contents($url, false, $context);
         }
-
-        #return $wpcf;
     }
 
     public function field_callback($arguments)
