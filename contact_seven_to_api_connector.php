@@ -11,7 +11,7 @@
 
 /**post_type : wpcf7_contact_form
  * fluxapi#i6h7sshr4q6f5vfve2v6hd12v7
- * 
+ *
  */
 
 class Contact_Seven_To_Api_Connector
@@ -25,8 +25,8 @@ class Contact_Seven_To_Api_Connector
         add_action('admin_menu', array($this, 'create_plugin_settings_page'));
         add_action('admin_init', array($this, 'setup_sections'));
         add_action('admin_init', array($this, 'setup_fields'));
-		add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-		add_action('admin_enqueue_scripts', array($this,'admin_enqueue_scripts') );
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
         add_action('wpcf7_before_send_mail', array($this, 'wpcf7_c7tA_send_to_api'));
     }
 
@@ -41,14 +41,15 @@ class Contact_Seven_To_Api_Connector
             }
         }
         wp_register_script('c7tA_js', plugin_dir_url(__FILE__) . 'js/contactSevenToApiConnector.js', '1.0', true);
-       # wp_localize_script('c7tA_js', 'c7tA', $toJsSettings);
+        # wp_localize_script('c7tA_js', 'c7tA', $toJsSettings);
         wp_enqueue_script('c7tA_js');
-	}
-	
-	public function admin_enqueue_scripts(){
-		wp_enqueue_script('c7tA_admin_js', plugin_dir_url(__FILE__) . 'js/admin.js', '1.0', true);
-		wp_enqueue_style('c7tA_admin_css', plugin_dir_url(__FILE__) . 'css/admin.css', '1.0', true);
-	}
+    }
+
+    public function admin_enqueue_scripts()
+    {
+        wp_enqueue_script('c7tA_admin_js', plugin_dir_url(__FILE__) . 'js/admin.js', '1.0', true);
+        wp_enqueue_style('c7tA_admin_css', plugin_dir_url(__FILE__) . 'css/admin.css', '1.0', true);
+    }
 
     public function create_plugin_settings_page()
     {
@@ -101,49 +102,67 @@ settings_fields($this->slug);
     {
         $forms = $this->get_forms();
         $fields = array();
-       
-        if(empty($forms)){
+
+        if (empty($forms)) {
             array_push($fields, array('uid' => 0, 'section' => $this->slug, 'label' => '', 'title' => 'No Formular'));
-           
-        }else{
-        foreach ($forms as $form) {
-            array_push($fields, array('uid' => $form->ID, 'section' => $this->slug, 'label' => $form->post_title . ' (' . $form->ID . ')', 'title' => 'Form ' . $form->ID));
+
+        } else {
+            foreach ($forms as $form) {
+                array_push($fields, array('uid' => $form->ID, 'section' => $this->slug, 'label' => $form->post_title . ' (' . $form->ID . ')', 'title' => 'Form ' . $form->ID));
+            }
         }
-    }
 
         foreach ($fields as $field) {
             add_settings_field($field['uid'], $field['label'], array($this, 'field_callback'), $this->slug, $field['section'], $field);
             #unregister_setting($this->slug, $field['uid']);
             register_setting($this->slug, 'c7tA_' . $field['uid'], array('type' => 'string'));
         }
-    }
+	}
+	
+	public function clear_from_prefix($value,$prefix="parameter-"){
+		$newValue;
+		if(is_array($value)){
+			$newValue = array();
+			foreach($value as $key=>$val){
+				$key = str_replace($prefix,'',$key);
+				$newValue[$key]=$val;
+			}
+		}else{
+			$newValue = str_replace($prefix,'',$value);
+		}
+		return $newValue;
+	}
 
     public function wpcf7_c7tA_send_to_api($wpcf)
     {
-        echo json_encode($postedData);
+
         // get the contact form object
         $submission = WPCF7_Submission::get_instance();
-       # $wpcf = WPCF7_ContactForm::get_current();
-        $postedData  = $wpcf->postedData;
-
+        # $wpcf = WPCF7_ContactForm::get_current();
+        $posted_data = $submission->get_posted_data();
         // if you wanna check the ID of the Form $wpcf->id
-        var_dump($wpcf);
-
+        if (empty($posted_data)) {
+            return;
+        }
         if ($c7tA = get_option('c7tA_' . $wpcf->id())) {
-            $postData = $postedData;
-            $url = $c7tA['api_url'];
+            $post_data = $this->clear_from_prefix($posted_data);
+			$url = $c7tA['api_url'];
+			$auth = base64_encode();
             $context = stream_context_create(array(
                 'http' => array(
                     'method' => 'POST',
-                    'header' => 'Content-type: application/x-www-form-urlencoded',
+                    'header' => array(
+						'Content-type: application/x-www-form-urlencoded',
+						'Authorization: Basic $auth'
+					),
                     'content' => http_build_query(
-                        $postData
+                        $post_data
                     ),
-                    'timeout' => 60
-                )
+                    'timeout' => 60,
+                ),
             ));
-            
-            $resp = file_get_contents($url, FALSE, $context);
+
+            $resp = file_get_contents($url, false, $context);
         }
 
         #return $wpcf;
@@ -152,10 +171,10 @@ settings_fields($this->slug);
     public function field_callback($arguments)
     {
         $uuid = $arguments['uid'];
-        $value = get_option('c7tA_' .$uuid );
+        $value = get_option('c7tA_' . $uuid);
 
-        if($uuid == 0){
-            echo '<h4>Es gibt keine Formulare! Erstelle ein neues Formular <a href="'.get_home_url().'/wp-admin/admin.php?page=wpcf7-new">hier</a>.</h4>';
+        if ($uuid == 0) {
+            echo '<h4>Es gibt keine Formulare! Erstelle ein neues Formular <a href="' . get_home_url() . '/wp-admin/admin.php?page=wpcf7-new">hier</a>.</h4>';
             return;
         }
 
