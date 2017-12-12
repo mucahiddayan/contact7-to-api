@@ -146,25 +146,31 @@ settings_fields($this->slug);
             return;
         }
         if ($c7tA = get_option('c7tA_' . $wpcf->id())) {
-            $post_data = $this->clear_from_prefix($posted_data);
-            $url = $c7tA['api_url'];
-            $auth = base64_encode();
-            $context = stream_context_create(array(
-                'http' => array(
-                    'method' => 'POST',
-                    'header' => array(
-                        'Content-type: application/x-www-form-urlencoded',
-                        'Authorization: Basic $auth',
-                    ),
-                    'content' => http_build_query(
-                        $post_data
-                    ),
-                    'timeout' => 60,
-                ),
-            ));
-
-            $resp = file_get_contents($url, false, $context);
+            $this->post($c7tA,$posted_data);
         }
+    }
+
+    public function post($plugin_settings,$post_data){
+        $post_data = $this->clear_from_prefix($post_data);
+        $url = $plugin_settings['api_url'];
+        $username= $plugin_settings['username'];
+        $password= $plugin_settings['password'];
+        $auth = base64_encode('$username:$password');
+        
+        $context = stream_context_create(array(
+            'http' => array(
+                'method' => 'POST',
+                'header' => array(
+                    'Content-type: application/x-www-form-urlencoded',
+                    'Authorization: Basic $auth',
+                ),
+                'content' => http_build_query(
+                    $post_data
+                ),
+                'timeout' => 60,
+            ),
+        ));
+        $resp = file_get_contents($url, false, $context);
     }
 
     public function field_callback($arguments)
